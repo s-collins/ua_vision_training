@@ -3,9 +3,12 @@
 ua_vision_training/
  * base_models/
  * data/
-   * [insert git submodule for labelimg software]
-   * images.jpg
-   * annotations.xml
+   * 1.jpg
+   * 2.jpg
+   * ...
+   * 1.xml
+   * 2.xml
+   * ...
  * tools/
    * [LabelImg](https://github.com/tzutalin/labelImg)
  * training/
