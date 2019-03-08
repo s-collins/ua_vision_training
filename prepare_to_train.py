@@ -1,4 +1,3 @@
-import subprocess
 from utilities import create_tf_record
 
 
@@ -14,12 +13,3 @@ if __name__ == '__main__':
 		'label_map_path': 'models/label_map.pbtxt'
 	}
 	create_tf_record.main(**options)
-
-
-	subprocess.call([
-		'python',
-		'/home/paperspace/models/research/object_detection/legacy/train.py',
-		'--logtostderr',
-		'--train_dir=output',
-		'--pipeline_config_path=models/ssd_mobilenet_v1_coco/configuration.config'
-	])
