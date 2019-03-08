@@ -78,7 +78,7 @@ def dict_to_tf_example(data_dict, label_map_dict):
             xmax.append(float(obj['bndbox']['xmax']) / width)
             ymax.append(float(obj['bndbox']['ymax']) / height)
             class_ids.append(label_map_dict[obj['name']])
-            classes_text.append(obj['name'].encode('utf8'))
+            class_names.append(obj['name'].encode('utf8'))
 
     key = hashlib.sha256(encoded_jpg).hexdigest()
 
@@ -110,8 +110,8 @@ def get_partitioned_ids():
     training ratio is the number of training examples reserved for training
     divided by the total number of training examples.
     """
-    num_examples = ARGS.num_examples
-    ratio = ARGS.training_ratio
+    num_examples = int(ARGS.num_examples)
+    ratio = float(ARGS.training_ratio)
     full_range = range(1, num_examples + 1)
     training_ids = random.sample(full_range, int(ratio * num_examples))
     eval_ids = list(set(full_range) - set(training_ids))
