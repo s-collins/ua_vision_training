@@ -139,7 +139,7 @@ def write_tf_record(output_path, training_example_ids, label_map_path, data_dir)
 
 def main(data_dir, training_set_output_path, eval_set_output_path, num_examples,
          training_ratio, label_map_path):
-    (training_set, eval_set) = get_partitioned_ids()
+    (training_set, eval_set) = get_partitioned_ids(num_examples, training_ratio)
     write_tf_record(training_set_output_path, training_set, label_map_path, data_dir)
     write_tf_record(eval_set_output_path, eval_set, label_map_path, data_dir)
 
