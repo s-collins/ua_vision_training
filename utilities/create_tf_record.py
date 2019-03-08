@@ -13,19 +13,6 @@ from object_detection.utils import dataset_util
 from object_detection.utils import label_map_util
 
 #-------------------------------------------------------------------------------
-# Command-line arguments
-#-------------------------------------------------------------------------------
-
-flags = tf.app.flags
-flags.DEFINE_string('data_dir',                 '', 'Directory of PASCAL data')
-flags.DEFINE_string('training_set_output_path', '', 'Path to training TFRecord')
-flags.DEFINE_string('eval_set_output_path',     '', 'Path to eval TFRecord')
-flags.DEFINE_string('num_examples',             '', 'Num. training examples')
-flags.DEFINE_string('training_ratio',           '', 'Percentage of training examples')
-flags.DEFINE_string('label_map_path',           '', 'Path to label map')
-ARGS = flags.FLAGS
-
-#-------------------------------------------------------------------------------
 # Helper functions
 #-------------------------------------------------------------------------------
 
@@ -142,13 +129,3 @@ def main(data_dir, training_set_output_path, eval_set_output_path, num_examples,
     (training_set, eval_set) = get_partitioned_ids(num_examples, training_ratio)
     write_tf_record(training_set_output_path, training_set, label_map_path, data_dir)
     write_tf_record(eval_set_output_path, eval_set, label_map_path, data_dir)
-
-
-#def main(_):
-    #(training_set, eval_set) = get_partitioned_ids(num_examples, training_ratio)
-    #write_tf_record(ARGS.training_set_output_path, training_set)
-    #write_tf_record(ARGS.eval_set_output_path, eval_set)
-
-#if __name__ == '__main__':
-    #random.seed()
-    #tf.app.run()
