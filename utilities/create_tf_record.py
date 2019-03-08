@@ -13,19 +13,6 @@ from object_detection.utils import dataset_util
 from object_detection.utils import label_map_util
 
 #-------------------------------------------------------------------------------
-# Command-line arguments
-#-------------------------------------------------------------------------------
-
-flags = tf.app.flags
-flags.DEFINE_string('data_dir',                 '', 'Directory of PASCAL data')
-flags.DEFINE_string('training_set_output_path', '', 'Path to training TFRecord')
-flags.DEFINE_string('eval_set_output_path',     '', 'Path to eval TFRecord')
-flags.DEFINE_string('num_examples',             '', 'Num. training examples')
-flags.DEFINE_string('training_ratio',           '', 'Percentage of training examples')
-flags.DEFINE_string('label_map_path',           '', 'Path to label map')
-ARGS = flags.FLAGS
-
-#-------------------------------------------------------------------------------
 # Helper functions
 #-------------------------------------------------------------------------------
 
@@ -41,7 +28,7 @@ def get_encoded_jpeg(image_path):
         raise ValueError('Image is not a JPEG')
     return encoded_jpg
 
-def dict_to_tf_example(data_dict, label_map_dict):
+def dict_to_tf_example(data_dict, label_map_dict, data_dir):
     """
     Creates training example object (see tf.train.Example)
 
@@ -60,7 +47,7 @@ def dict_to_tf_example(data_dict, label_map_dict):
     height = int(data_dict['size']['height'])
 
     # Get JPEG data as encoded bytes
-    image_path = os.path.join(ARGS.data_dir, image_filename)
+    image_path = os.path.join(data_dir, image_filename)
     encoded_jpg = get_encoded_jpeg(image_path)
 
     # Create array of class labels for the annotations (i.e., bounding boxes)
@@ -100,7 +87,7 @@ def dict_to_tf_example(data_dict, label_map_dict):
     }))
     return example
 
-def get_partitioned_ids():
+def get_partitioned_ids(num_examples, training_ratio):
     """
     Returns two sets of ids between 1 and total number of training examples
     (inclusive).
@@ -110,26 +97,26 @@ def get_partitioned_ids():
     training ratio is the number of training examples reserved for training
     divided by the total number of training examples.
     """
-    num_examples = int(ARGS.num_examples)
-    ratio = float(ARGS.training_ratio)
+    num_examples = int(num_examples)
+    ratio = float(training_ratio)
     full_range = range(1, num_examples + 1)
     training_ids = random.sample(full_range, int(ratio * num_examples))
     eval_ids = list(set(full_range) - set(training_ids))
     return (training_ids, eval_ids)
 
-def write_tf_record(output_path, training_example_ids):
+def write_tf_record(output_path, training_example_ids, label_map_path, data_dir):
     """
     Writes TFRecord for a set of training examples.
     """
-    label_map_dict = label_map_util.get_label_map_dict(ARGS.label_map_path)
+    label_map_dict = label_map_util.get_label_map_dict(label_map_path)
     writer = tf.python_io.TFRecordWriter(output_path)
     for i in training_example_ids:
-        path = os.path.join(ARGS.data_dir, str(i) + '.xml')
+        path = os.path.join(data_dir, str(i) + '.xml')
         with tf.gfile.GFile(path, 'r') as fid:
             xml_str = fid.read()
         xml = etree.fromstring(xml_str)
         data_dict = dataset_util.recursive_parse_xml_to_dict(xml)['annotation']
-        tf_example = dict_to_tf_example(data_dict, label_map_dict)
+        tf_example = dict_to_tf_example(data_dict, label_map_dict, data_dir)
         writer.write(tf_example.SerializeToString())
     writer.close()   
 
@@ -137,11 +124,8 @@ def write_tf_record(output_path, training_example_ids):
 # Main function
 #-------------------------------------------------------------------------------
 
-def main(_):
-    (training_set, eval_set) = get_partitioned_ids()
-    write_tf_record(ARGS.training_set_output_path, training_set)
-    write_tf_record(ARGS.eval_set_output_path, eval_set)
-
-if __name__ == '__main__':
-    random.seed()
-    tf.app.run()
+def main(data_dir, training_set_output_path, eval_set_output_path, num_examples,
+         training_ratio, label_map_path):
+    (training_set, eval_set) = get_partitioned_ids(num_examples, training_ratio)
+    write_tf_record(training_set_output_path, training_set, label_map_path, data_dir)
+    write_tf_record(eval_set_output_path, eval_set, label_map_path, data_dir)
