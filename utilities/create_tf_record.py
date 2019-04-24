@@ -143,7 +143,7 @@ def write_tf_record(output_path, training_example_ids, label_map_path, data_dir)
 def cross_validation(data_dir, tfrecord_dir, label_map_path, num_examples, k):
     partitions = get_partitions(num_examples, k)
     for i in range(k):
-        os.mkdir(tfrecord_dir + '/' + str(i))        
+        os.makedirs(tfrecord_dir + '/' + str(i))        
         eval_set = set(partitions[i])
         training_set = set(range(1, num_examples + 1)) - eval_set
         training_output_path = tfrecord_dir + '/' + str(i) + '/training_set.tfrecord'
