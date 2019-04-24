@@ -87,7 +87,7 @@ def dict_to_tf_example(data_dict, label_map_dict, data_dir):
     }))
     return example
 
-def get_partitioned_ids(num_examples, training_ratio):
+#def get_partitioned_ids(num_examples, training_ratio):
     """
     Returns two sets of ids between 1 and total number of training examples
     (inclusive).
@@ -97,12 +97,22 @@ def get_partitioned_ids(num_examples, training_ratio):
     training ratio is the number of training examples reserved for training
     divided by the total number of training examples.
     """
-    num_examples = int(num_examples)
-    ratio = float(training_ratio)
-    full_range = range(1, num_examples + 1)
-    training_ids = random.sample(full_range, int(ratio * num_examples))
-    eval_ids = list(set(full_range) - set(training_ids))
-    return (training_ids, eval_ids)
+#    num_examples = int(num_examples)
+#    ratio = float(training_ratio)
+#    full_range = range(1, num_examples + 1)
+#    training_ids = random.sample(full_range, int(ratio * num_examples))
+#    eval_ids = list(set(full_range) - set(training_ids))
+#    return (training_ids, eval_ids)
+
+def get_partitions (num_examples, k):
+    """
+    Generates an list of partitions, where each partition is a list of training
+    example IDs.  These partitions will be used for "k-fold cross validation"
+    """
+    ids = list(range(1, int(num_examples) + 1))
+    random.shuffle(ids)
+    partitions = [ids[i::k] for i in range(k)]
+    return partitions
 
 def write_tf_record(output_path, training_example_ids, label_map_path, data_dir):
     """
@@ -124,8 +134,18 @@ def write_tf_record(output_path, training_example_ids, label_map_path, data_dir)
 # Main function
 #-------------------------------------------------------------------------------
 
-def main(data_dir, training_set_output_path, eval_set_output_path, num_examples,
-         training_ratio, label_map_path):
-    (training_set, eval_set) = get_partitioned_ids(num_examples, training_ratio)
-    write_tf_record(training_set_output_path, training_set, label_map_path, data_dir)
-    write_tf_record(eval_set_output_path, eval_set, label_map_path, data_dir)
+#def main(data_dir, training_set_output_path, eval_set_output_path, num_examples,
+#         training_ratio, label_map_path):
+#    (training_set, eval_set) = get_partitioned_ids(num_examples, training_ratio)
+#    write_tf_record(training_set_output_path, training_set, label_map_path, data_dir)
+#    write_tf_record(eval_set_output_path, eval_set, label_map_path, data_dir)
+
+def cross_validation(data_dir, tfrecord_dir, label_map_path, num_examples, k):
+    partitions = get_partitions(num_examples, k)
+    for i in range(k):
+        eval_set = set(partitions[i])
+        training_set = set(range(1, num_examples + 1)) - eval_set
+        training_output_path = tfrecord_dir + '/' + str(i) + '/training_set.tfrecord'
+        eval_output_path = tfrecord_dir + '/' + str(i) + '/eval_set.tfrecord'
+        write_tf_record(training_output_path, list(training_set), label_map_path, data_dir)
+        write_tf_record(eval_output_path, list(training_set), label_map_path, data_dir)
